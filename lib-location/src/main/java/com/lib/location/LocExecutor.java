@@ -1,5 +1,7 @@
 package com.lib.location;
 
+import android.support.annotation.NonNull;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,19 +9,11 @@ public class LocExecutor {
 
     private ILocCache cache;
     private ILocWorker worker;
-    private List<LocChangedListener> listeners = new ArrayList<>();
+    private List<LocObserver> observers = new ArrayList<>();
 
     public void LocExecutor(ILocWorker worker, ILocCache cache) {
         this.worker = worker;
         this.cache = cache;
-    }
-
-    /**
-     * 发起定位请求。
-     * @param callback 定位参数，如果为空，那么使用默认的配置。
-     */
-    public void startLoc(final ILocCallback callback) {
-        startLoc(callback, null);
     }
 
     /**
@@ -29,6 +23,9 @@ public class LocExecutor {
      *
      */
     public void startLoc(final ILocCallback callback, LocParams params) {
+        if (params == null) {
+            throw new IllegalStateException("params must not be null");
+        }
         LocResponse cacheResponse = getLocCache();
         boolean isExpire = cacheExpire(cacheResponse);
         if (isExpire) {
@@ -66,28 +63,28 @@ public class LocExecutor {
 
     /**
      * 监听请求导致的地理位置变化。
-     * @param listener 监听。
+     * @param observer 监听。
      */
-    public void addLocChangedListener(LocChangedListener listener) {
-        listeners.add(listener);
+    public void addLocObsever(LocObserver observer) {
+        observers.add(observer);
     }
 
     /**
      * 移除请求导致的地理位置变化。
-     * @param listener 监听。
+     * @param observer 监听。
      */
-    public void removeLocChangedListener(LocChangedListener listener) {
-        listeners.remove(listener);
+    public void removeLocObserver(LocObserver observer) {
+        observers.remove(observer);
     }
 
-    private void doRealLoc(final ILocCallback callback, LocParams params) {
+    private void doRealLoc(final ILocCallback callback, @NonNull LocParams params) {
         if (worker != null) {
             worker.doRealLoc(new LocCallbackWrapper(callback), params);
         }
     }
 
     private void noticeLocChanged(LocResponse response) {
-        for (LocChangedListener listener : listeners) {
+        for (LocObserver listener : observers) {
             listener.noticeLocationChanged(response);
         }
     }

@@ -1,6 +1,8 @@
 package com.lib.location;
 
 
+import android.support.annotation.NonNull;
+
 public interface ILocWorker {
 
     /**
@@ -9,7 +11,7 @@ public interface ILocWorker {
      * @param params 定位参数，如果为空，那么使用默认的配置。
      *
      */
-    void doRealLoc(ILocCallback callback, LocParams params);
+    void doRealLoc(ILocCallback callback, @NonNull LocParams params);
 
     /**
      * 停止定位。

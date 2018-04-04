@@ -1,7 +1,7 @@
 package com.lib.location;
 
 
-public abstract class LocChangedListener {
+public abstract class LocObserver {
 
     private LocResponse lastResponse;
 

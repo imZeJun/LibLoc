@@ -1,6 +1,8 @@
 package com.lib.location;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
+
 import com.amap.api.location.AMapLocation;
 import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
@@ -21,10 +23,10 @@ public class AMapLocWorker implements ILocWorker {
     }
 
     @Override
-    public void doRealLoc(ILocCallback callback, LocParams params) {
+    public void doRealLoc(ILocCallback callback, @NonNull LocParams params) {
         initLocOption(params);
         initLocWorker();
-        doRealLocWork(callback);
+        doLocWork(callback);
     }
 
     @Override
@@ -45,10 +47,7 @@ public class AMapLocWorker implements ILocWorker {
      * 初始化定位配置。
      * @param params 定位配置。
      */
-    private void initLocOption(LocParams params){
-        if (params == null) {
-            params = getDefaultParams();
-        }
+    private void initLocOption(@NonNull LocParams params){
         if (locationOption == null || !params.equals(lastParams)) {
             locationOption = getLocOption(params);
         }
@@ -69,7 +68,7 @@ public class AMapLocWorker implements ILocWorker {
      * 发起定位请求。
      * @param callback 定位的回调。
      */
-    private void doRealLocWork(ILocCallback callback){
+    private void doLocWork(ILocCallback callback){
         if (locationClient != null) {
             locationClient.setLocationListener(new AMapLocationListener(callback));
             locationClient.startLocation();
