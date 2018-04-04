@@ -5,7 +5,10 @@ import com.amap.api.location.AMapLocation;
 import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
 
-public class GaoDeLocWorker implements ILocWorker {
+/**
+ * 高德地图的定位实现类。
+ */
+public class AMapLocWorker implements ILocWorker {
 
     private Context context;
 
@@ -13,7 +16,7 @@ public class GaoDeLocWorker implements ILocWorker {
     private AMapLocationClientOption locationOption = null;
     private LocParams lastParams;
 
-    GaoDeLocWorker(Context context) {
+    AMapLocWorker(Context context) {
         this.context = context;
     }
 

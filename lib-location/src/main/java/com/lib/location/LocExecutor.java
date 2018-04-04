@@ -9,15 +9,7 @@ public class LocExecutor {
     private ILocWorker worker;
     private List<LocChangedListener> listeners = new ArrayList<>();
 
-    private static final class Holder {
-        private static final LocExecutor INSTANCE = new LocExecutor();
-    }
-
-    public static LocExecutor getInstance() {
-        return Holder.INSTANCE;
-    }
-
-    public void buildWorker(ILocWorker worker, ILocCache cache) {
+    public void LocExecutor(ILocWorker worker, ILocCache cache) {
         this.worker = worker;
         this.cache = cache;
     }
@@ -114,7 +106,7 @@ public class LocExecutor {
         return cache == null || cache.expire(response);
     }
 
-    private static final class LocCallbackWrapper implements ILocCallback {
+    private final class LocCallbackWrapper implements ILocCallback {
 
         private ILocCallback callback;
 
@@ -125,14 +117,14 @@ public class LocExecutor {
         @Override
         public void onLocFinished(LocResponse response) {
             if (response == null) {
-                response = Holder.INSTANCE.getLocCache();
+                response = getLocCache();
             } else {
-                Holder.INSTANCE.cacheLocResponse(response);
+                cacheLocResponse(response);
             }
             if (callback != null) {
                 callback.onLocFinished(response);
             }
-            Holder.INSTANCE.noticeLocChanged(response);
+            noticeLocChanged(response);
         }
     }
 }
