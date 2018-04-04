@@ -5,12 +5,12 @@ public abstract class LocChangedListener {
 
     private LocResponse lastResponse;
 
-    protected boolean isEqualResponse(LocResponse lastResponse, LocResponse newResponse) {
+    protected boolean equal(LocResponse lastResponse, LocResponse newResponse) {
         return false;
     }
 
     final void noticeLocationChanged(LocResponse response) {
-        if (!isEqualResponse(lastResponse, response)) {
+        if (!equal(lastResponse, response)) {
             lastResponse = response;
             onLocationChanged(response);
         }
