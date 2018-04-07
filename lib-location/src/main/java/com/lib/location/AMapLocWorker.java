@@ -31,7 +31,9 @@ public class AMapLocWorker implements ILocWorker {
 
     @Override
     public void stopLoc() {
-        locationClient.stopLocation();
+        if (locationClient != null) {
+            locationClient.stopLocation();
+        }
     }
 
     @Override
