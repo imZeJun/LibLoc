@@ -117,7 +117,7 @@ public class AMapLocWorker implements ILocWorker {
             if (aMapLocation != null && aMapLocation.getErrorCode() == AMapLocation.LOCATION_SUCCESS) {
                 response = new LocResponse.Builder()
                         .responseTime(System.currentTimeMillis())
-                        .altitude(aMapLocation.getAltitude())
+                        .city(aMapLocation.getCity())
                         .latitude(aMapLocation.getLatitude())
                         .longitude(aMapLocation.getLongitude()).build();
             }

@@ -3,13 +3,13 @@ package com.lib.location;
 
 public class LocResponse {
 
-    private double altitude;
+    private String city;
     private double latitude;
     private double longitude;
     private long responseTime;
 
     public LocResponse(Builder builder) {
-        this.altitude = builder.altitude;
+        this.city = builder.city;
         this.latitude = builder.latitude;
         this.longitude = builder.longitude;
         this.responseTime = builder.responseTime;
@@ -19,8 +19,8 @@ public class LocResponse {
         return responseTime;
     }
 
-    public double getAltitude() {
-        return altitude;
+    public String getCity() {
+        return city;
     }
 
     public double getLatitude() {
@@ -33,13 +33,13 @@ public class LocResponse {
 
     public static final class Builder {
 
-        private double altitude;
+        private String city;
         private double latitude;
         private double longitude;
         private long responseTime;
 
-        public Builder altitude(double altitude) {
-            this.altitude = altitude;
+        public Builder city(String city) {
+            this.city = city;
             return this;
         }
 
