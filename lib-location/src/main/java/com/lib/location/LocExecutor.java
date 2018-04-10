@@ -35,18 +35,23 @@ public class LocExecutor {
      */
     public void startLoc(final ILocCallback callback, LocParams params) {
         if (params == null) {
-            throw new IllegalStateException("params must not be null");
+            return;
         }
         LocResponse cacheResponse = getLocCache();
         boolean isExpire = cacheExpire(cacheResponse);
         if (cacheResponse == null) {
+            //如果没有缓存，那么立即发起定位。
             doRealLoc(callback, params);
-        } else if (isExpire) {
+        } else {
+            //首先将缓存返回给调用者。
             if (callback != null) {
                 callback.onLocFinished(cacheResponse);
             }
-            removeDelayLoc();
-            doDelayLoc(callback, params);
+            //如果缓存过期，那么间隔一段时间再发起定位。
+            if (isExpire) {
+                removeDelayLoc();
+                doDelayLoc(callback, params);
+            }
         }
     }
 
@@ -148,7 +153,7 @@ public class LocExecutor {
      */
     private void noticeLocChanged(LocResponse response) {
         for (LocObserver listener : observers) {
-            listener.noticeLocationChanged(response);
+            listener.onLocationChanged(response);
         }
     }
 
