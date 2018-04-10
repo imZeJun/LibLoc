@@ -12,8 +12,9 @@ import com.amap.api.location.AMapLocationClientOption;
  */
 public class AMapLocWorker implements ILocWorker {
 
-    private Context context;
+    private static final long LOCATION_HTTP_TIME_OUT = 1000 * 30;
 
+    private Context context;
     private AMapLocationClient locationClient = null;
     private AMapLocationClientOption locationOption = null;
     private LocParams lastParams;
@@ -83,16 +84,10 @@ public class AMapLocWorker implements ILocWorker {
 
     private AMapLocationClientOption getLocOption(LocParams params){
         AMapLocationClientOption option = new AMapLocationClientOption();
-        option.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
-        option.setGpsFirst(false);
-        option.setHttpTimeOut(30000);
-        option.setInterval(2000);
-        option.setNeedAddress(true);
-        option.setOnceLocation(params.isOnce());
-        option.setOnceLocationLatest(false);
-        option.setSensorEnable(false);
         option.setWifiScan(false);
-        option.setLocationCacheEnable(false);
+        option.setLocationMode(AMapLocationClientOption.AMapLocationMode.Battery_Saving);
+        option.setOnceLocation(true);
+        option.setHttpTimeOut(LOCATION_HTTP_TIME_OUT);
         return option;
     }
 

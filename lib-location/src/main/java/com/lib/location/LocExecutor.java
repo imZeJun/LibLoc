@@ -1,19 +1,30 @@
 package com.lib.location;
 
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.support.annotation.NonNull;
+import android.util.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class LocExecutor {
 
+    private static final int DELAY_LOC_TIME = 2000;
+    private static final int CANCEL_LOC_TIMER = 30000;
+
     private ILocCache cache;
     private ILocWorker worker;
+    private Handler locHandler;
+    private long delayLocTime;
+    private long forceCancelTime;
     private List<LocObserver> observers = new ArrayList<>();
 
     public void LocExecutor(ILocWorker worker, ILocCache cache) {
         this.worker = worker;
         this.cache = cache;
+        this.locHandler = new LocHandler(Looper.getMainLooper());
     }
 
     /**
@@ -28,10 +39,14 @@ public class LocExecutor {
         }
         LocResponse cacheResponse = getLocCache();
         boolean isExpire = cacheExpire(cacheResponse);
-        if (isExpire) {
+        if (cacheResponse == null) {
             doRealLoc(callback, params);
-        } else if (callback != null) {
-            callback.onLocFinished(cacheResponse);
+        } else if (isExpire) {
+            if (callback != null) {
+                callback.onLocFinished(cacheResponse);
+            }
+            removeDelayLoc();
+            doDelayLoc(callback, params);
         }
     }
 
@@ -39,6 +54,8 @@ public class LocExecutor {
      * 取消定位。
      */
     public void stopLoc() {
+        removeCancelTimer();
+        removeDelayLoc();
         if (worker != null) {
             worker.stopLoc();
         }
@@ -48,6 +65,8 @@ public class LocExecutor {
      * 销毁定位。
      */
     public void destroyLoc() {
+        removeCancelTimer();
+        removeDelayLoc();
         if (worker != null) {
             worker.destroyLoc();
         }
@@ -77,12 +96,56 @@ public class LocExecutor {
         observers.remove(observer);
     }
 
+    /**
+     * 真正发起定位请求。
+     * @param callback 定位请求回调。
+     * @param params 参数。
+     */
     private void doRealLoc(final ILocCallback callback, @NonNull LocParams params) {
         if (worker != null) {
             worker.doRealLoc(new LocCallbackWrapper(callback), params);
         }
+        removeCancelTimer();
+        doCancelTimer(callback);
     }
 
+    /**
+     * 当已经有缓存的时候，延迟一段时间再发起定位。
+     * @param callback 定位请求回调。
+     * @param params 参数。
+     */
+    private void doDelayLoc(final ILocCallback callback, @NonNull LocParams params) {
+        Message message = locHandler.obtainMessage(LocHandler.MSG_DELAY_LOC, new Pair<>(callback, params));
+        locHandler.sendMessageDelayed(message, getDelayLocTime());
+    }
+
+    /**
+     * 取消延时定位请求。
+     */
+    private void removeDelayLoc() {
+        locHandler.removeMessages(LocHandler.MSG_DELAY_LOC);
+    }
+
+    /**
+     * 为了防止定位时间过长，当定位时间过长时，会强制取消定位请求，并返回缓存的位置。
+     * @param callback 回调
+     */
+    private void doCancelTimer(ILocCallback callback) {
+        Message message = locHandler.obtainMessage(LocHandler.MSG_FORCE_CANCEL_LOC, callback);
+        locHandler.sendMessageDelayed(message, getForceCancelTime());
+    }
+
+    /**
+     * 取消定位时长的计时器。
+     */
+    private void removeCancelTimer() {
+        locHandler.removeMessages(LocHandler.MSG_FORCE_CANCEL_LOC);
+    }
+
+    /**
+     * 通知监听者位置发生了变化。
+     * @param response 新的地理位置信息。
+     */
     private void noticeLocChanged(LocResponse response) {
         for (LocObserver listener : observers) {
             listener.noticeLocationChanged(response);
@@ -103,6 +166,22 @@ public class LocExecutor {
         return cache == null || cache.expire(response);
     }
 
+    public long getDelayLocTime() {
+        return delayLocTime > 0 ? delayLocTime : DELAY_LOC_TIME;
+    }
+
+    public long getForceCancelTime() {
+        return forceCancelTime > 0 ? forceCancelTime : CANCEL_LOC_TIMER;
+    }
+
+    public void setDelayLocTime(long delayLocTime) {
+        this.delayLocTime = delayLocTime;
+    }
+
+    public void setForceCancelTime(long forceCancelTime) {
+        this.forceCancelTime = forceCancelTime;
+    }
+
     private final class LocCallbackWrapper implements ILocCallback {
 
         private ILocCallback callback;
@@ -113,6 +192,7 @@ public class LocExecutor {
 
         @Override
         public void onLocFinished(LocResponse response) {
+            removeCancelTimer();
             if (response == null) {
                 response = getLocCache();
             } else {
@@ -122,6 +202,39 @@ public class LocExecutor {
                 callback.onLocFinished(response);
             }
             noticeLocChanged(response);
+        }
+    }
+
+    private final class LocHandler extends Handler {
+
+        private static final int MSG_DELAY_LOC = 0;
+        private static final int MSG_FORCE_CANCEL_LOC = 1;
+
+        public LocHandler(Looper looper) {
+            super(looper);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case MSG_DELAY_LOC:
+                    Pair<ILocCallback, LocParams> obj = (Pair<ILocCallback, LocParams>) msg.obj;
+                    if (obj != null) {
+                        doRealLoc(obj.first, obj.second);
+                    }
+                    break;
+                case MSG_FORCE_CANCEL_LOC:
+                    stopLoc();
+                    ILocCallback callback = (ILocCallback) msg.obj;
+                    if (callback != null) {
+                        LocResponse cache = getLocCache();
+                        callback.onLocFinished(cache);
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }
