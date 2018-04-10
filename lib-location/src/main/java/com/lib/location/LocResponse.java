@@ -4,12 +4,14 @@ package com.lib.location;
 public class LocResponse {
 
     private String city;
+    private String cityCode;
     private double latitude;
     private double longitude;
     private long responseTime;
 
     public LocResponse(Builder builder) {
         this.city = builder.city;
+        this.cityCode = builder.cityCode;
         this.latitude = builder.latitude;
         this.longitude = builder.longitude;
         this.responseTime = builder.responseTime;
@@ -31,15 +33,25 @@ public class LocResponse {
         return longitude;
     }
 
+    public String getCityCode() {
+        return cityCode;
+    }
+
     public static final class Builder {
 
         private String city;
+        private String cityCode;
         private double latitude;
         private double longitude;
         private long responseTime;
 
         public Builder city(String city) {
             this.city = city;
+            return this;
+        }
+
+        public Builder cityCode(String cityCode) {
+            this.cityCode = cityCode;
             return this;
         }
 

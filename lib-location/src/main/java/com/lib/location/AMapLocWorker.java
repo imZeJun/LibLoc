@@ -105,12 +105,14 @@ public class AMapLocWorker implements ILocWorker {
             if (locationCallback != null) {
                 locationCallback.onLocFinished(response);
             }
+            stopLoc();
         }
 
         LocResponse dealResponse(AMapLocation aMapLocation) {
             LocResponse response = null;
             if (aMapLocation != null && aMapLocation.getErrorCode() == AMapLocation.LOCATION_SUCCESS) {
                 response = new LocResponse.Builder()
+                        .cityCode(aMapLocation.getCityCode())
                         .responseTime(System.currentTimeMillis())
                         .city(aMapLocation.getCity())
                         .latitude(aMapLocation.getLatitude())
