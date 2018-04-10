@@ -43,14 +43,13 @@ public class LocExecutor {
             //如果没有缓存，那么立即发起定位。
             doRealLoc(callback, params);
         } else {
-            //首先将缓存返回给调用者。
-            if (callback != null) {
-                callback.onLocFinished(cacheResponse);
-            }
             //如果缓存过期，那么间隔一段时间再发起定位。
             if (isExpire) {
                 removeDelayLoc();
                 doDelayLoc(callback, params);
+            } else if (callback != null) {
+                //如果缓存没有过期，那么直接返回缓存。
+                callback.onLocFinished(cacheResponse);
             }
         }
     }
@@ -198,6 +197,7 @@ public class LocExecutor {
         @Override
         public void onLocFinished(LocResponse response) {
             removeCancelTimer();
+            //如果响应为空，那么读取缓存用于返回。
             if (response == null) {
                 response = getLocCache();
             } else {
