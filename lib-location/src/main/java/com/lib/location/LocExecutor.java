@@ -231,11 +231,12 @@ public class LocExecutor {
                     break;
                 case MSG_FORCE_CANCEL_LOC:
                     stopLoc();
+                    LocResponse cache = getLocCache();
                     ILocCallback callback = (ILocCallback) msg.obj;
                     if (callback != null) {
-                        LocResponse cache = getLocCache();
                         callback.onLocFinished(cache);
                     }
+                    noticeLocChanged(cache);
                     break;
                 default:
                     break;
